@@ -47,3 +47,7 @@ Using the Python programming language, create an application with the following 
 
 - At the end of the game, store the player's name and score in a file.
 - Clicking the LEADERBOARD button displays the top 5 players.
+
+## Project Preview
+
+![Snake Game](https://i.imgur.com/4wsS1eU.png)
