@@ -50,4 +50,4 @@ Using the Python programming language, create an application with the following 
 
 ## Project Preview
 
-![Snake Game](https://i.imgur.com/4wsS1eU.png)
+![Snake Game](https://i.imgur.com/ZJxrACL.png)

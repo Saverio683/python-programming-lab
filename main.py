@@ -127,7 +127,7 @@ class Main(EasyFrame):
             self.timer_thread.daemon = True
             self.timer_thread.start()
             self.seconds += 1
-            self.time_label['text'] = f'Tempo: {self.seconds}s'
+            self.time_label['text'] = f'Time: {self.seconds}s'
         else:
             self.timer_thread.cancel() #stop timer
             self.seconds = 0
@@ -147,8 +147,8 @@ class Main(EasyFrame):
                 self.grid_thread = threading.Timer(TIME, self.__handle_game__) #Re-inizializzazione del thread
                 self.grid_thread.daemon = True
                 self.grid_thread.start()
-                self.occupied_cells_label['text'] = f'Celle occupate: {len(self.snake.body)}'
-                self.remained_cells_label['text'] = f'Celle rimanenti: {ROWS*COLS - (len(self.snake.body) + 200)}'
+                self.occupied_cells_label['text'] = f'Occupied cells: {len(self.snake.body)}'
+                self.remained_cells_label['text'] = f'Remaining cells: {ROWS*COLS - (len(self.snake.body) + 200)}'
                 self.snake.move(self.direction, self)
         else:
             update_ranking(self.username.getText(), len(self.snake.body)) #update the ranking
