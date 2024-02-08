@@ -17,14 +17,14 @@ COLS = 20
 @dataclass
 class Cell:
     '''
-        La classe Cell serve a gestire la griglia di gioco.
-        ATTRIBUTI:
-            -r,c: stanno per row e column, sono le coordinate della cella nella griglia.
-            -button: è il bottone che viene mostrato a video, è un'istanza della classe Button, la stessa che ritorna 
-            il metodo addButton di EasyFrame.
-            -is_snake_body: valore booleano che stabilisce se la cella compone il corpo del serpente.
-            -is_apple: booleano per stabilire se la cella è la mela.
-            -bg: il colore di background, bianco di default
+        The Cell class is used to manage the game grid.
+        ATTRIBUTES:
+            -r,c: stand for row and column, they are the coordinates of the cell in the grid.
+            -button: is the button that is shown on the screen, it is an instance of the Button class, the same one that returns 
+            EasyFrame's addButton method.
+            -is_snake_body: boolean value that determines whether the cell makes up the body of the snake.
+            -is_apple: boolean to determine whether the cell is the apple.
+            -bg: the background color, white by default.
     '''
     def __init__(self, button, r, c):
         self.r: int = r
@@ -62,10 +62,10 @@ class Cell:
 @dataclass
 class Snake:
     '''
-        Classe per la gestione del serpente.
-        ATTRIBUTI:
-            -body: lista delle celle che lo compongono.
-            La prima cella della lista è la coda, l'ultima sarà la testa.
+        Snake management class.
+        ATTRIBUTES:
+            -body: list of cells that make it up.
+            The first cell in the list is the tail, the last will be the head.
     '''
     def __init__(self, body: List[Cell]):
         self.body = body
@@ -76,24 +76,24 @@ class Snake:
 
     def move(self, next_direction: Literal['N', 'S', 'E', 'W'], master: EasyFrame) -> None:
         '''
-            Questo metodo gestisce l'avanzamento del serpente.
-            Per far avanzare il serpente si rimuove la coda e si aggiunge una nuova testa davanti quella precedente
+            This method handles the advancement of the snake.
+            To advance the snake, the tail is removed and a new head is added in front of the previous one
         '''
         def get_next_head_coordinates(prev_head: Cell, next_direction: Literal['N', 'S', 'E', 'W']) -> Tuple[int, int]:
             '''
-                Questa funzione serve a calcolare la posizione della nuova testa in base alla direzione
+                This function is used to calculate the position of the new head based on the direction
             '''
             r, c = prev_head.r, prev_head.c
             match next_direction:
                 case 'N':
                     r -= 1
-                    if r < 0: #il serpente tocca il bordo superiore della griglia
+                    if r < 0: #the snake touches the top edge of the grid
                         master.outcome = 'L'
                         master.is_game_started = False
                         r = 0
                 case 'S':
                     r += 1
-                    if r > 19: #tocca il bordo inferiore
+                    if r > 19: #it touches the inferior edge
                         master.outcome = 'L'
                         master.is_game_started = False
                         r = 19
@@ -104,24 +104,24 @@ class Snake:
             return r, c
 
         grid = master.cells
-        #rimuovo la coda
+        #delete tail
         prev_tail = self.body[0]
         grid[prev_tail.r][prev_tail.c].empty()
         del self.body[0]
 
-        #nuova coda
+        #new tail
         self.body[0].tail()
 
-        #la vecchia testa diventa body
+        #old head becomes body
         prev_head = self.body[-1]
         prev_head.body()
 
-        #nuova testa
+        #new head
         r,c = get_next_head_coordinates(prev_head, next_direction)
         new_head = grid[r][c]
         self.body.append(new_head)
 
-        if new_head.is_snake_body: #se il serpente tocca sé stesso
+        if new_head.is_snake_body: #check if the snake eats itself
             master.outcome = 'L'
             master.is_game_started = False
             master.cells[r][c].head()
@@ -129,8 +129,8 @@ class Snake:
 
         def eat_apple(r, c, curr_head) -> None:
             '''
-                Con questa funzione verifico se è stata mangiata la mela.
-                La testa attuale diventa body e la cella successiva diventa la nuova testa
+                With this function I check whether the apple has been eaten.
+                The current head becomes body and the next cell becomes the new head
             '''
             if grid[r][c].is_apple:
                 curr_head.body()
@@ -141,33 +141,30 @@ class Snake:
                 eat_apple(r, c, new_head)
             else:
                 curr_head.head()
-                if len(self.body) >= 200: #verifico se il giocatore ha vinto
+                if len(self.body) >= 200: #check for victory
                     master.outcome = 'W'
                     master.is_game_started = False
                     return
 
         eat_apple(r, c, new_head)
 
-        # Aggiorno la griglia
+        #Update grid
         grid[new_head.r][new_head.c] = new_head
         for cell in self.body:
             master.cells[cell.r][cell.c] = cell
 
 def update_ranking(username, score):
     '''
-        Questa funzione aggiunge i dati dell'ultima partita nel file di testo
+        This function adds the data of the last match in the text file
     '''
     with open('ranking.txt', 'r+', encoding='utf-8') as file:
         record: str = f'{score}-{username}'
-        #leggo tutte le righe del file
         lines: List[str] = file.readlines()
 
-        #se il file è vuoto, inserisco il nuovo record direttamente
         if not lines:
             file.write(record)
             return
 
-        #rimuovo il carattere di fine riga dalla riga finale del file
         last_line = lines[-1].rstrip('\n')
 
         lines[-1] = last_line + f'\n{record}'
@@ -177,7 +174,7 @@ def update_ranking(username, score):
 
 def show_ranking() -> List[Tuple[str, str]]:
     '''
-        Questa funzione ricalcola la classifica dei top 5 giocatori
+        This function calculates the ranking of the top 5 players again
     '''
     data: List[Tuple[int, str]] = []
 

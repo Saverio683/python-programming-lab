@@ -16,24 +16,24 @@ from game import Cell, Snake, update_ranking, show_ranking
 ROWS = 20
 COLS = 20
 #durata dell'intervallo in secondi
-TIME = 0.1
+TIME = 0.2
 BACKGROUND_COLOR = '#09B5FF'
 
 class Main(EasyFrame):
     '''
-        Questa è la classe principale dove viene gestita la finestra del gioco e i suoi stati.
-        ATTRIBUTI:
-            -cells: matrice di celle, rappresenta la griglia di gioco.
-            -is_game_started: valore booleano che tiene monitora se è iniziata la partita. La partita può iniziare 
-            cliccando sul tasto 'start' o su una cella della griglia.
-            -is_game_paused: tiene conto se il gioco è stato messo in pausa, cliccando sull'apposito bottone
-            -outcome: rappresenta il risultato della partita, può essere 'L' in caso di sconfiffa (lose), w in caso
-            di vittoria (win) e '' se la partita è in corso o non è ancora iniziata.
-            -direction: il verso di direzione del serpente, indicato dai punti cardinali.
-            -seconds: è un contatore che tiene conto dei secondi trascorsi dall'inizio della partita.
-            -apple_coordinates: le coordinate della mela nella griglia.
-            -snake: è un'istanza della classe Snake, che tiene traccia dei movimenti e dello stato del serpente
-            durante la partita.
+        This is the main class where the game window and its states are managed.
+        ATTRIBUTES:
+            -cells: array of cells, represents the game grid.
+            -is_game_started: boolean value that holds monitors whether the game has started. The game can start 
+            by clicking on the 'start' button or on a grid cell.
+            -is_game_paused: keeps track of whether the game has been paused by clicking on the appropriate button
+            -outcome: represents the result of the game, can be 'L' in case of defeat (lose), w in case
+            of win (win) and '' if the game is in progress or has not yet started.
+            -direction: the direction of the snake, indicated by the cardinal points.
+            -seconds: is a counter that keeps track of the seconds elapsed since the start of the game.
+            -apple_coordinates: the coordinates of the apple in the grid.
+            -snake: is an instance of the Snake class, which keeps track of the snake's movements and state
+            during the game.
     '''
     def __init__(self):
         EasyFrame.__init__(self, title='Snake', background='black', resizable=False)
@@ -47,18 +47,18 @@ class Main(EasyFrame):
         self.apple_coordinates: Tuple[int, int] = (None,None)
         self.snake: 'Snake' = None
 
-        #costruzione della schermata
+        #Creating che GUI
         self.__build_window__()
 
-        #inizializzo i thread per il rendering della griglia e del timer
+        #Initialize the threads for rendering the grid and timer
         self.grid_thread = threading.Timer(TIME, self.__handle_game__)
         self.timer_thread = threading.Timer(1, self.__handle_game__)
 
     def __on_key_press__(self, key: str) -> None:
         '''
-            Evento che rileva quale tasto di direzione è stato premuto e aggiorna lo stato della direzione, solo se
-            si è premuto un tasto diverso da quello precedente, in modo da non aggiornare inutilmente 
-            l'attributo direction.
+            Event that detects which direction key has been pressed and updates the direction state, only if
+            a different key was pressed than the previous one, so as not to unnecessarily update 
+            the direction attribute.
         '''
         if self.direction != key:
             match key:
@@ -77,72 +77,72 @@ class Main(EasyFrame):
 
     def __on_start_button_click__(self, x: int = None, y: int = None) -> None:
         '''
-            Evento del bottone start. 
-            Gli attributi x e y vengono passati quando l'utente clicca sulla griglia per 
-            posizionare il serpende dove vuole lui, se clicca invece il tasto 'start' allora
-            x e y verranno generati successivamente
+            Start button event. 
+            The x and y attributes are passed when the user clicks on the grid to 
+            place the serpende where he wants it, if he clicks the 'start' button instead then
+            x and y will be generated later
         '''
         if not self.is_game_started:
-            if self.outcome: #cancello la scritta 'game over' o 'hai vinto'
+            if self.outcome: #Delete the words 'game over' or 'you won'
                 for r in range(ROWS):
                     for c in range(COLS):
                         self.cells[r][c].empty()
                 self.outcome = ''
                 return
-            if self.username.getText() in ['Inserisci username', '', ' ']: #check dell'username
+            if self.username.getText() in ['Username', '', ' ']: #Username check
                 self.error_message.config(foreground='red')
             else:
                 if x and y:
                     self.__build_snake__(x, y)
                 else:
                     self.__build_snake__()
-                #posiziono la mela e reinizializzo gli stati della partita
+                #Place the apple and reinitialize the game states
                 self.__place_apple__()
                 self.error_message.config(foreground=BACKGROUND_COLOR)
                 self.is_game_started = True
                 self.is_game_paused = False
-                #avvio i thread
+                #Start threads
                 self.__handle_game__()
                 self.__start_timer__()
                 
-                # Rimuovo il focus dall'input dell'username
+                #Remove the focus from the input of the username
                 self.focus_set()
 
     def __on_pause_button_click__(self) -> None:
         '''
-            Evento del tasto pausa
+            Pause button event
         '''
-        if self.is_game_started: #check se la partita è iniziata
+        self.focus_set()
+        if self.is_game_started: #Check if the game has started
             self.is_game_paused = not self.is_game_paused
             self.__handle_game__()
 
     def __start_timer__(self) -> None:
         '''
-            Questo metodo avvia il timer, gestito da un thread che si aggiorna a intervalli di 1s
+            This method starts the timer, managed by a thread that updates at 1s intervals
         '''
         if self.is_game_started:
-            self.timer_thread = threading.Timer(1.0, self.__start_timer__) # Re-inizializzazione del thread
-            #il parametro 'daemon' và settato a True così quando si chiude la finestra del Main, anche il thread
-            #interromperà il suo ciclo di vita
+            self.timer_thread = threading.Timer(1.0, self.__start_timer__) # Re-initiating the thread
+            #the 'daemon' parameter should be set to True so when you close the Main window, the thread will also stop its life cycle
             self.timer_thread.daemon = True
             self.timer_thread.start()
             self.seconds += 1
             self.time_label['text'] = f'Tempo: {self.seconds}s'
         else:
-            self.timer_thread.cancel() #fermo il timer
+            self.timer_thread.cancel() #stop timer
             self.seconds = 0
 
     def __handle_game__(self) -> None:
         '''
-            Questo metodo gestisce il flusso di gioco.
-            Se la partita è in corso gestisce il thread che renderizza la griglia periodicamente e la aggiorna 
-            in seguito agli spostamenti del serpemnte e al posizionamento della mela.
-            A partita conclusa viene salvato l'utente e viene aggiornata la classifica e viene mostrata sulla griglia
-            la scritta 'game over' o 'hai vinto'.
+            This method manages the flow of the game.
+            If the game is running it manages the thread that renders the grid periodically and updates it 
+            as a result of snaemnte moves and apple placement.
+            When the game is over, the user is saved and the leaderboard is updated and shown on the grid
+            the words 'game over' or 'you won'.
         '''
         if self.is_game_started:  
             if self.is_game_paused:
-                self.grid_thread.cancel() #metto in pausa il rendering
+                self.grid_thread.cancel() #pause the game rendering
             else:
                 self.grid_thread = threading.Timer(TIME, self.__handle_game__) #Re-inizializzazione del thread
                 self.grid_thread.daemon = True
@@ -151,22 +151,22 @@ class Main(EasyFrame):
                 self.remained_cells_label['text'] = f'Celle rimanenti: {ROWS*COLS - (len(self.snake.body) + 200)}'
                 self.snake.move(self.direction, self)
         else:
-            update_ranking(self.username.getText(), len(self.snake.body)) #aggiorno la classifica
+            update_ranking(self.username.getText(), len(self.snake.body)) #update the ranking
             self.grid_thread.cancel()
             self.occupied_cells_label['text'] = ''
             self.remained_cells_label['text'] = ''
             self.time_label['text'] = ''
-            self.username.setText('Inserisci username')
-            self.__draw_grid__(self.outcome == 'W') #Scrivo 'game over' o 'hai vinto' sulla griglia
+            self.username.setText('Username')
+            self.__draw_grid__(self.outcome == 'W') #Write 'game over' or 'you won' on the grid
 
     def __draw_grid__(self, is_victory: bool) -> None:
         '''
-            Questo è il metodo che scrive sulla griglia la scritta di sconfitta o vittoria.
-            Prima la griglia viene pulita cancellando la mela e il serpente.
+            This is the method that writes the writing of defeat or victory on the grid.
+            First the grid is cleaned by erasing the apple and the snake.
         '''
         (x,y) = self.apple_coordinates
-        self.cells[x][y].empty() #cancello la mela
-        for cell in self.snake.body: #cancello il serpente
+        self.cells[x][y].empty() #delete the apple and the snake
+        for cell in self.snake.body:
             cell.empty()
         coordinates: List[Tuple[int, int]] = []
         if is_victory:
@@ -197,23 +197,23 @@ class Main(EasyFrame):
 
     def __place_apple__(self) -> None:
         '''
-            Metodo che posiziona randomicamente la mela sulla griglia
+            Method that randomly places apple on the grid
         '''
-        if not self.outcome: #la mela viene posizionata solo durante la partita
+        if not self.outcome: #the apple is placed only during the game
             x,y = None, None
             while True:
-                #si è scelto di usare il metodo 'choices' di random piuttosto che altri, perché questo metodo
-                #può ritornare una coppia di valori uguali (x = y), e quindi poter posizonare la mela nella diagonale
+                #chose to use the 'choices' method of random rather than others because this method
+                #can return a pair of equal values (x = y), and thus be able to place the apple in the diagonal
                 x,y = random.choices(range(20), k=2)
-                if not self.cells[x][y].is_snake_body: #check se la mela non viene posizionata nel corpo del serpente
+                if not self.cells[x][y].is_snake_body: #check if the apple is not placed in the snake body
                     break
             self.cells[x][y].apple()
             self.apple_coordinates = (x,y)
 
     def __build_snake__(self, x: int = None, y: int = None):
         '''
-            Metodo che posiziona il serpente sulla griglia.
-            x e y sono le coordinate del bottone, se l'utente ha deciso di posizionare il serpente dove vuole lui.
+            Method that places the snake on the grid.
+            x and y are the coordinates of the button, if the user has decided to place the snake where he wants it.
         '''
         self.direction = 'W'
         snake_body: List['Cell'] = []
@@ -230,7 +230,7 @@ class Main(EasyFrame):
 
     def __build_grid__(self) -> None: 
         '''
-            Questo metodo crea la griglia
+            This method builds the grid
         '''
         for r in range(ROWS):
             for c in range(COLS):
@@ -243,58 +243,55 @@ class Main(EasyFrame):
 
     def __build_window__(self) -> None:
         '''
-            In questo metodo vengono aggiunti tutti i componenti della finestra di gioco.
-            'panel1' contiene l'input per lo username e i tasti start e pausa.
-            'panel2' contiene i 4 tasti direzionali.
-            'panel3' contiene i 3 label della partita e il tasto per mostrare la classifica.
+            In this method all components of the game window are added.
+            'panel1' contains the input for the username and the start and pause buttons.
+            'panel2' is just for making space.
+            'panel3' contains the 3 game labels and the button to show the leaderboard.
         '''
-        self.bind('<Key>', self.__on_key_press_event__)
+        self.bind('<Key>', self.__on_key_press_event__) #key press event
         self.configure(borderwidth=0, highlightthickness=0)
         self.__build_grid__()
         self.panel1 = self.addPanel(row=0, column=0, columnspan=20, background=BACKGROUND_COLOR)
-        self.panel2 = self.addPanel(row=1, column=0, columnspan=20, background=BACKGROUND_COLOR)
+        #empty panel
+        self.addPanel(row=1, column=0, columnspan=20, background=BACKGROUND_COLOR).addLabel('', 1, 0, background=BACKGROUND_COLOR)
         self.panel3 = self.addPanel(row=23, column=0, columnspan=20, background=BACKGROUND_COLOR)
 
-        self.username = self.panel1.addTextField('Inserisci username', 0, 0, sticky='W')
+        self.username = self.panel1.addTextField('Username', 0, 0, sticky='W')
         self.start = self.panel1.addButton('Start', 0, 1, command=self.__on_start_button_click__)
-        self.pause = self.panel1.addButton('Pausa', 0, 2, command=self.__on_pause_button_click__)
+        self.pause = self.panel1.addButton('Pause', 0, 2, command=self.__on_pause_button_click__)
 
-        for widget in self.panel1.winfo_children():
+        for widget in self.panel1.winfo_children(): #iterate through panel buttons
             if isinstance(widget, Button):
                 widget.config(borderwidth=0, highlightthickness=1, highlightbackground='#000')
 
-        self.panel1.addLabel('', 0, 3, sticky='W', background=BACKGROUND_COLOR)
+        #Blank label to place other elements correctly
+        self.panel1.addLabel('', 0, 3, sticky='W', background=BACKGROUND_COLOR) 
         
+        #label of the error message, in case of failure to enter the username
         self.error_message = self.panel1.addLabel('', 0, 20, background=BACKGROUND_COLOR, foreground=BACKGROUND_COLOR)
-        self.error_message['text'] = 'Devi inserire il tuo username per giocare'
+        #by default the label is 'invisible', that is, it has the text color as the background color in case of an error, it changes its color to red.
+        self.error_message['text'] = 'Invalid username'
 
-        self.panel2.addButton('↑', 0, 10, command = lambda: self.__on_key_press__('N'))
-        for i in range(0, 8):
-            self.panel2.addLabel('', 1, i, sticky='E', background=BACKGROUND_COLOR)
-        self.panel2.addButton('←', 1, 9, command = lambda: self.__on_key_press__('W'))
-        self.panel2.addButton('→', 1, 11, command = lambda: self.__on_key_press__('E'))
-        for i in reversed(range(11, 20)):
-            self.panel2.addLabel('', 1, i, sticky='W', background=BACKGROUND_COLOR)
-        self.panel2.addButton('↓', 2, 10, command = lambda: self.__on_key_press__('S'))
-
+        #panel3 labels are blank until the game starts
         self.time_label = self.panel3.addLabel('', 0, 0, background=BACKGROUND_COLOR, foreground='white')
         self.occupied_cells_label = self.panel3.addLabel('', 0, 1, background=BACKGROUND_COLOR, foreground='white')
         self.remained_cells_label = self.panel3.addLabel('', 0, 2, background=BACKGROUND_COLOR, foreground='white')
         self.panel3.addLabel('', 0, 4, sticky='WE', background=BACKGROUND_COLOR, columnspan=20)
-        self.panel3.addButton('Mostra classifica', 0, 20, command=self.__on_ranking_button_click__)
+        self.panel3.addButton('Show ranking', 0, 20, command=self.__on_ranking_button_click__)
 
+        #function that iterates over a panel's buttons to apply default styles to them
+        #this function saves considerable lines of code and makes it more readable
         def configure_buttons(panel, background_color):
             for widget in panel.winfo_children():
                 if isinstance(widget, Button):
                     widget.config(borderwidth=0, highlightthickness=1, highlightbackground='#000', fg='#000', background=background_color)
 
         configure_buttons(self.panel1, '#fff')
-        configure_buttons(self.panel2, '#FFC300')
         configure_buttons(self.panel3, '#fff')
 
     def __on_key_press_event__(self, event) -> None:
         '''
-        Evento chiamato quando un tasto della tastiera viene premuto.
+            Event called when a key on the keyboard is pressed.
         '''
         key = event.keysym
         if key in ['w', 'a', 's', 'd']:
@@ -305,20 +302,20 @@ class Main(EasyFrame):
                     self.__on_key_press__('E')
                 case 'w':
                     self.__on_key_press__('N')
-                case _:
+                case _: #S
                     self.__on_key_press__(key.upper())
 
     def __on_ranking_button_click__(self) -> None:
         '''
-            Quest'evento mostra la finestra contenente la classifica
+            This event shows the window containing the ranking
         '''
-        if not self.is_game_started: #la classifica non si può aprire con la partita in corso
+        if not self.is_game_started: #ranking cannot be opened if the current game
             result: str = ''
             data = show_ranking()
-            for (score, username) in data:
-                result += f'{username}: {score}\n'
+            for index, (score, username) in enumerate(data, start=1):
+                result += f'{index}) {username}: {score}\n'
             result = result.rstrip('\n')
-            self.messageBox('CLASSIFICA', result)
+            self.messageBox('RANKING', result, 30)
 
 def main():
     Main().mainloop()
